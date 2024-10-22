@@ -1,0 +1,28 @@
+name: bookcollection
+description: A new Flutter project.
+
+# The version of your application.
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+
+# Dependencies section should be at the root level, not inside "flutter".
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Add other dependencies if required (e.g., path_provider, etc.)
+
+# Assets section under flutter
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/book.png
+    - assets/images/3rd.png
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+# Add more configurations here if necessary
