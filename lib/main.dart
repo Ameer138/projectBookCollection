@@ -1,20 +1,20 @@
-import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+  import 'package:flutter/material.dart';
+  import 'screens/bookcollectionpage.dart';
 
-void main() {
-  runApp(EasyApp());
-}
-
-class EasyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'EasyApp',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: HomeScreen(),
-      debugShowCheckedModeBanner: false,
-    );
+  void main() {
+    runApp(MyApp());
   }
-}
+
+  class MyApp extends StatelessWidget {
+    @override
+    Widget build(BuildContext context) {
+      return MaterialApp(
+        title: 'Book Collection',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: BookCollectionPage(),
+        debugShowCheckedModeBanner: false,
+      );
+    }
+  }

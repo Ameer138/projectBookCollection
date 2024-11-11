@@ -21,6 +21,12 @@ flutter:
   assets:
     - assets/images/book.png
     - assets/images/3rd.png
+    - assets/images/Book1.jpg
+    - assets/images/do.jpeg
+    - assets/images/gr.png
+    - assets/images/sc.png
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
