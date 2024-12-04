@@ -2,24 +2,99 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'package:flutter/services.dart';
 
-class BookCollectionPage extends StatelessWidget {
+class BookCollectionPage extends StatefulWidget {
+  @override
+  _BookCollectionPageState createState() => _BookCollectionPageState();
+}
+
+class _BookCollectionPageState extends State<BookCollectionPage> {
+  double _scale = 1.0; // Current scale
+  double _previousScale = 1.0;
+  Offset _offset = Offset.zero; // Current position
+  Offset _previousOffset = Offset.zero;
+
+  String _gestureStatus = "Idle"; // Tracks gesture actions
+
+  // Method to scale the image to half of its original size
+  void _setScaleSmall() {
+    setState(() {
+      _scale = 0.5; // Scale to half the original size
+      _gestureStatus = "Scaled to Small Size (50%)";
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Book Collection',
           style: TextStyle(color: Colors.black87),
         ),
         backgroundColor: Colors.white,
-        iconTheme: IconThemeData(color: Colors.black54),
-        leading: IconButton(icon: Icon(Icons.menu), onPressed: () {}),
+        iconTheme: const IconThemeData(color: Colors.black54),
+        leading: IconButton(icon: const Icon(Icons.menu), onPressed: () {}),
         actions: <Widget>[
-          IconButton(icon: Icon(Icons.cloud_queue), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.cloud_queue), onPressed: () {}),
         ],
         systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
-      body: _buildBody(context),
+      body: Column(
+        children: [
+          _buildGestureStatusBar(), // Status bar for gestures
+          Expanded(
+            child: _buildBody(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Gesture Status Bar with InkWell and InkResponse
+  Widget _buildGestureStatusBar() {
+    return Container(
+      color: Colors.blue.shade100,
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          InkWell(
+            onTap: () {
+              _setScaleSmall(); // Scale to half when tapped
+            },
+            child: Row(
+              children: const [
+                Icon(Icons.touch_app, color: Colors.blue),
+                SizedBox(width: 5),
+                Text(
+                  "Tap Here",
+                  style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          InkResponse(
+            onTap: () {
+              _setScaleSmall(); // Scale to half when tapped
+            },
+            child: Row(
+              children: const [
+                Icon(Icons.gesture, color: Colors.green),
+                SizedBox(width: 5),
+                Text(
+                  "Hover/Tap",
+                  style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            _gestureStatus,
+            style: const TextStyle(fontSize: 14, color: Colors.black87),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 
@@ -27,21 +102,19 @@ class BookCollectionPage extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: <Widget>[
-          _buildBookHeaderImage(),
+          _buildInteractiveImage(), // Updated interactive image
           SafeArea(
             child: Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   _buildBookEntry(),
-                  Divider(),
+                  const Divider(),
                   _buildBookWeather(),
-                  Divider(),
-                  _buildBookTags(),
-                  Divider(),
+                  const Divider(),
                   _buildBookFooterImages(context),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -51,27 +124,55 @@ class BookCollectionPage extends StatelessWidget {
     );
   }
 
-  // Updated method to add rounded corners and shadow
-  Widget _buildBookHeaderImage() {
-    return Container(
-      margin: EdgeInsets.all(16.0), // Add margin to separate it from other elements
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15.0), // Rounded corners
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black26, // Shadow color
-            blurRadius: 10.0, // Spread of the shadow
-            offset: Offset(0, 5), // Offset for positioning
+  /// Interactive Image with GestureDetector
+  Widget _buildInteractiveImage() {
+    return GestureDetector(
+      onScaleStart: (details) {
+        setState(() {
+          _previousScale = _scale;
+          _previousOffset = details.focalPoint - _offset;
+          _gestureStatus = "Scaling Started";
+        });
+      },
+      onScaleUpdate: (details) {
+        setState(() {
+          _scale = (_previousScale * details.scale).clamp(0.5, 4.0); // Scaling limit
+          _offset = details.focalPoint - _previousOffset; // Update position
+          _gestureStatus = "Scaling Updated";
+        });
+      },
+      onDoubleTap: () {
+        setState(() {
+          _scale = 1.0; // Reset scale
+          _offset = Offset.zero; // Reset position
+          _gestureStatus = "Double Tap: Reset";
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 10.0,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(15.0),
+          child: Transform(
+            transform: Matrix4.identity()
+              ..translate(_offset.dx, _offset.dy) // Apply offset
+              ..scale(_scale), // Apply scale
+            child: Image.asset(
+              'assets/images/Book1.jpg', // Replace with your image asset
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: 200.0,
+            ),
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(15.0), // Same radius as the container
-        child: Image.asset(
-          'assets/images/Book1.jpg', // Replace with your image asset
-          fit: BoxFit.cover, // Ensures the image covers the container properly
-          width: double.infinity, // Makes the image take the full width of its parent
-          height: 200.0, // Set height as needed
         ),
       ),
     );
@@ -80,7 +181,7 @@ class BookCollectionPage extends StatelessWidget {
   Widget _buildBookEntry() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
+      children: const <Widget>[
         Text(
           'My Favorite Books',
           style: TextStyle(fontSize: 32.0, fontWeight: FontWeight.bold),
@@ -100,14 +201,14 @@ class BookCollectionPage extends StatelessWidget {
       children: <Widget>[
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
+          children: const <Widget>[
             Icon(Icons.wb_sunny, color: Colors.orange),
           ],
         ),
-        SizedBox(width: 16.0),
+        const SizedBox(width: 16.0),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
+          children: const <Widget>[
             Row(
               children: <Widget>[
                 Text(
@@ -129,70 +230,49 @@ class BookCollectionPage extends StatelessWidget {
       ],
     );
   }
-
-  Widget _buildBookTags() {
-    return Wrap(
-      spacing: 8.0,
-      children: List.generate(7, (int index) {
-        return Chip(
-          label: Text(
-            'Tag ${index + 1}',
-            style: TextStyle(fontSize: 10.0),
-          ),
-          avatar: Icon(Icons.book, color: Colors.blue.shade300),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4.0),
-            side: BorderSide(color: Colors.grey),
-          ),
-          backgroundColor: Colors.grey.shade100,
-        );
-      }),
-    );
-  }
-
   Widget _buildBookFooterImages(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         Column(
           children: [
-            CircleAvatar(
-              backgroundImage: AssetImage('assets/images/do.jpeg'), // Replace with book cover image
+            const CircleAvatar(
+              backgroundImage: AssetImage('assets/images/do.jpeg'),
               radius: 40.0,
             ),
-            SizedBox(height: 4.0),
-            Text('ListView'),
+            const SizedBox(height: 4.0),
+            const Text('ListView'),
             ElevatedButton(
-              onPressed: () => _navigateToHomeScreen(context, 0), // Pass tab index for ListView
-              child: Text('Go to ListView'),
+              onPressed: () => _navigateToHomeScreen(context, 0),
+              child: const Text('Go to ListView'),
             ),
           ],
         ),
         Column(
           children: [
-            CircleAvatar(
-              backgroundImage: AssetImage('assets/images/gr.png'), // Replace with book cover image
+            const CircleAvatar(
+              backgroundImage: AssetImage('assets/images/gr.png'),
               radius: 40.0,
             ),
-            SizedBox(height: 4.0),
-            Text('GridView'),
+            const SizedBox(height: 4.0),
+            const Text('GridView'),
             ElevatedButton(
-              onPressed: () => _navigateToHomeScreen(context, 1), // Pass tab index for GridView
-              child: Text('Go to GridView'),
+              onPressed: () => _navigateToHomeScreen(context, 1),
+              child: const Text('Go to GridView'),
             ),
           ],
         ),
         Column(
           children: [
-            CircleAvatar(
-              backgroundImage: AssetImage('assets/images/sc.png'), // Replace with book cover image
+            const CircleAvatar(
+              backgroundImage: AssetImage('assets/images/sc.png'),
               radius: 40.0,
             ),
-            SizedBox(height: 4.0),
-            Text('ScrollView'),
+            const SizedBox(height: 4.0),
+            const Text('ScrollView'),
             ElevatedButton(
-              onPressed: () => _navigateToHomeScreen(context, 2), // Pass tab index for Custom ScrollView
-              child: Text('Go to ScrollView'),
+              onPressed: () => _navigateToHomeScreen(context, 2),
+              child: const Text('Go to ScrollView'),
             ),
           ],
         ),
@@ -204,7 +284,7 @@ class BookCollectionPage extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => HomeScreen(initialTabIndex: tabIndex), // Pass tab index
+        builder: (context) => HomeScreen(initialTabIndex: tabIndex),
       ),
     );
   }
